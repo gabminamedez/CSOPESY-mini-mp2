@@ -8,6 +8,7 @@ public class Main {
 
     public static int boarders = 0;
     public static int unboarders = 0;
+    public static int unloadeds = 0;
 
     public static Semaphore mutex1 = new Semaphore(1);
     public static Semaphore mutex2 = new Semaphore(1);
@@ -29,6 +30,7 @@ public class Main {
         System.out.print("Enter capacity of each car: ");
         capacity = reader.nextInt();
         if(numPassengers <= capacity){
+            System.out.println("Number of passengers must be greater than car capacity!");
             System.exit(0);
         }
         System.out.print("Enter number of cars: ");
@@ -152,8 +154,13 @@ class Car extends Thread {
                 Main.unloadingArea[id].acquire();
                 unload();
                 Main.unboardQueue.release(Main.capacity);
-                System.out.println("All ashore from car ["+ id +"]!");
                 Main.allAshore.acquire();
+                System.out.println("All ashore from car ["+ id +"]!");
+                Main.unloadeds += 1;
+                if(Main.unloadeds == Main.numCars){
+                    System.out.println("All rides completed!");
+                    Main.unloadeds = 0;
+                }
                 Main.unloadingArea[next(id)].release();
             }
             catch(InterruptedException e){
@@ -181,6 +188,6 @@ class Car extends Thread {
     }
 
     public int next(int num){
-        return (num + 1) % Main.capacity;
+        return (num + 1) % (Main.capacity);
     }
 }
