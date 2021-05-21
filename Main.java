@@ -9,6 +9,7 @@ public class Main {
     public static int boarders = 0;
     public static int unboarders = 0;
     public static int unloadeds = 0;
+    public static int completed = 0;
 
     public static Semaphore mutex1 = new Semaphore(1);
     public static Semaphore mutex2 = new Semaphore(1);
@@ -67,13 +68,14 @@ public class Main {
 
 class Passenger extends Thread {
     public int id;
+    public volatile boolean passengerRunning = true;
 
     Passenger(int id){
         this.id = id;
     }
 
     public void run(){
-        while(true){
+        while(passengerRunning){
             try{
                 wander();
     
@@ -125,6 +127,11 @@ class Passenger extends Thread {
                 Main.unboarders = 0;
             }
             Main.mutex2.release();
+            Main.completed += 1;
+            if(Main.completed == Main.numPassengers){
+                System.out.println("All passengers completed!");
+                System.exit(0);
+            }
         }
         catch(InterruptedException e){
             e.printStackTrace();
