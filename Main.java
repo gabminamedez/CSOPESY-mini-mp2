@@ -9,7 +9,6 @@ public class Main {
     public static int boarders = 0;
     public static int unboarders = 0;
     public static int unloadeds = 0;
-    public static int completed = 0;
 
     public static Semaphore mutex1 = new Semaphore(1);
     public static Semaphore mutex2 = new Semaphore(1);
@@ -40,6 +39,7 @@ public class Main {
         loadingArea = new Semaphore[numCars];
         unloadingArea  = new Semaphore[numCars];
         reader.close();
+        System.out.println("");
 
         for(int i = 0; i < numCars; i++){
             loadingArea[i] = new Semaphore(0);
@@ -93,7 +93,6 @@ class Passenger extends Thread {
 
     public void wander(){
         try{
-            System.out.println("Passenger [" + id + "] is wandering.");
             sleep(Math.round(Math.random() * 1000)); 
         }
         catch(InterruptedException e){
@@ -104,7 +103,7 @@ class Passenger extends Thread {
     public void board(){
         try{
             Main.mutex1.acquire();
-            System.out.println("Passenger ["+ id +"] is now boarding.");
+            System.out.println("[" + java.time.LocalTime.now() + "] " + "Passenger ["+ id +"] is now boarding.");
             Main.boarders += 1;
             if(Main.boarders == Main.capacity){
                 Main.allAboard.release();
@@ -120,18 +119,13 @@ class Passenger extends Thread {
     public void unboard(){
         try{
             Main.mutex2.acquire();
-            System.out.println("Passenger ["+ id +"] is now unboarding.");
+            System.out.println("[" + java.time.LocalTime.now() + "] " + "Passenger ["+ id +"] is now unboarding.");
             Main.unboarders += 1;
             if(Main.unboarders == Main.capacity){
                 Main.allAshore.release();
                 Main.unboarders = 0;
             }
             Main.mutex2.release();
-            Main.completed += 1;
-            if(Main.completed == Main.numPassengers){
-                System.out.println("All passengers completed!");
-                System.exit(0);
-            }
         }
         catch(InterruptedException e){
             e.printStackTrace();
@@ -153,7 +147,7 @@ class Car extends Thread {
                 load();
                 Main.boardQueue.release(Main.capacity);
                 Main.allAboard.acquire();
-                System.out.println("All aboard car ["+ id +"]!");
+                System.out.println("[" + java.time.LocalTime.now() + "] " + "All aboard car ["+ id +"]!\n");
                 Main.loadingArea[next(id)].release();
 
                 drive();
@@ -162,10 +156,11 @@ class Car extends Thread {
                 unload();
                 Main.unboardQueue.release(Main.capacity);
                 Main.allAshore.acquire();
-                System.out.println("All ashore from car ["+ id +"]!");
+                System.out.println("[" + java.time.LocalTime.now() + "] " + "All ashore from car ["+ id +"]!\n");
                 Main.unloadeds += 1;
                 if(Main.unloadeds == Main.numCars){
-                    System.out.println("All rides completed!");
+                    System.out.println("[" + java.time.LocalTime.now() + "] " + "All rides completed!");
+                    System.exit(0);
                     Main.unloadeds = 0;
                 }
                 Main.unloadingArea[next(id)].release();
@@ -177,12 +172,12 @@ class Car extends Thread {
     }
 
     public void load(){
-        System.out.println("Car [" + id + "] is now ready for boarding.");
+        System.out.println("[" + java.time.LocalTime.now() + "] " + "Car [" + id + "] is now ready for boarding.\n");
     }
 
     public void drive(){
         try{
-            System.out.println("Car [" + id + "] is running.");
+            System.out.println("[" + java.time.LocalTime.now() + "] " + "Car [" + id + "] is running.\n");
             sleep(3000);
         }
         catch(InterruptedException e){
@@ -191,7 +186,7 @@ class Car extends Thread {
     }
 
     public void unload(){
-        System.out.println("Car [" + id + "] is now ready for unboarding.");
+        System.out.println("[" + java.time.LocalTime.now() + "] " + "Car [" + id + "] is now ready for unboarding.\n");
     }
 
     public int next(int num){
